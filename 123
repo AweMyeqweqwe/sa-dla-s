@@ -1,0 +1,57 @@
+from flask import Flask, request, render_template_string
+import json
+
+app = Flask(__name__)
+
+# HTML-шаблон страницы, встроенный прямо в Python-код
+html_code = """
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Информация о пользователе</title>
+</head>
+<body>
+    <h1>Привет! Страница загружается...</h1>
+    <script>
+        // Сбор информации о браузере и системе
+        const data = {
+            userAgent: navigator.userAgent,          // Браузер и ОС
+            language: navigator.language,            // Язык
+            platform: navigator.platform,            // Платформа
+            screen: {
+                width: window.screen.width,          // Разрешение экрана
+                height: window.screen.height
+            }
+        };
+
+        // Отправка данных на сервер
+        fetch('/log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+    </script>
+</body>
+</html>
+"""
+
+# Главная страница, куда человек зайдёт по ссылке
+@app.route('/')
+def index():
+    return render_template_string(html_code)  # Рендерим HTML-шаблон
+
+# Маршрут для получения данных с устройства пользователя
+@app.route('/log', methods=['POST'])
+def log():
+    data = request.json  # Получает данные в формате JSON
+    ip_address = request.remote_addr  # Получает IP-адрес пользователя
+    # Выводим данные в терминал или сохраняем в файл
+    print(f"Данные пользователя: {json.dumps(data)}, IP: {ip_address}")
+    return {'status': 'ok'}
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
